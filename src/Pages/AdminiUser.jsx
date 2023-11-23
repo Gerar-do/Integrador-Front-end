@@ -1,16 +1,21 @@
 import React, { useState, useEffect, Fragment } from 'react';
 import Header from '../Components/Header';
+import bcrypt from 'bcryptjs';
 import { Dialog, Transition } from '@headlessui/react';
-
 
 const AdminUser = () => {
   const [userData, setUserData] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editedUserData, setEditedUserData] = useState({
+    username: '',
+    email: '',
+    password: '',
+  });
 
   useEffect(() => {
-    // Reemplaza 'YOUR_API_URL' con la URL real de tu API http://localhost:3000/api/users
-    const apiUrl = '';
+    const apiUrl = '';  {/* http://localhost:3000/api/users */}
 
     const fetchData = async () => {
       try {
@@ -30,40 +35,99 @@ const AdminUser = () => {
     setIsDialogOpen(true);
   };
 
+  const handleEdit = (userId) => {
+    const selectedUser = userData.find((user) => user._id === userId);
+    setSelectedUserId(userId);
+    setEditedUserData({
+      username: selectedUser.username,
+      email: selectedUser.email,
+      password: selectedUser.password,
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setEditedUserData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
   const confirmDelete = async () => {
     try {
-      // Reemplaza 'YOUR_API_URL' con la URL real de tu API http://localhost:3000/api/users/:id
-      const apiUrl = `${selectedUserId}`;
+      if (!selectedUserId) {
+        console.error('No user selected for deletion');
+        return;
+      }
 
-      // Realiza la solicitud para eliminar el usuario con el ID seleccionado
+      const apiUrl = `${selectedUserId}`; {/* http://localhost:3000/api/users/  */}
+
       await fetch(apiUrl, { method: 'DELETE' });
 
-      // Actualiza el estado después de la eliminación
       setUserData(userData.filter((user) => user._id !== selectedUserId));
 
-      // Cierra el cuadro de diálogo después de eliminar
       setIsDialogOpen(false);
     } catch (error) {
       console.error('Error deleting user:', error);
     }
   };
 
+  
+const confirmEdit = async () => {
+  try {
+    if (!selectedUserId) {
+      console.error('No user selected for edit');
+      return;
+    }
+
+    const apiUrl = `${selectedUserId}`;  {/* http://localhost:3000/api/users/ */}
+
+    // Encriptar la contraseña con bcrypt
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(editedUserData.password, saltRounds);
+
+    // Crear un nuevo objeto con la contraseña encriptada
+    const editedUserWithHashedPassword = {
+      ...editedUserData,
+      password: hashedPassword,
+    };
+
+    await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(editedUserWithHashedPassword),
+    });
+
+    setUserData((prevUserData) =>
+      prevUserData.map((user) =>
+        user._id === selectedUserId ? { ...user, ...editedUserData } : user
+      )
+    );
+
+    setIsEditDialogOpen(false);
+  } catch (error) {
+    console.error('Error editing user:', error);
+  }
+};
   return (
     <>
-      <Header />
+       <Header />
       <div className="container mx-auto">
-        <br></br>
+        <br />
         <h1 className="text-2xl font-bold mb-4 p-8">Tabla de usuarios</h1>
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-300">
+          <table className="min-w-full bg-zinc-700 shadow border border-gray-300 text-white">
             <thead>
               <tr>
-                <th className="py-2 px-4 border-b">_id</th>
+                <th className="py-2 px-4 border-b">ID</th>
                 <th className="py-2 px-4 border-b">Username</th>
                 <th className="py-2 px-4 border-b">Email</th>
                 <th className="py-2 px-4 border-b">Password</th>
-                <th className="py-2 px-4 border-b">CreatedAt</th>
-                <th className="py-2 px-4 border-b">UpdatedAt</th>
+                <th className="py-2 px-4 border-b">Creado en</th>
+                <th className="py-2 px-4 border-b">Actualizado en</th>
                 <th className="py-2 px-4 border-b">Acciones</th>
               </tr>
             </thead>
@@ -79,9 +143,17 @@ const AdminUser = () => {
                   <td className="py-2 px-4 border-b">
                     <button
                       onClick={() => handleDelete(user._id)}
-                      className="text-red-500 hover:text-red-700 focus:outline-none"
+                      className="bg-red-500 text-white text-gray-50 hover:bg-gray-50 hover:text-black
+                      rounded-md px-4 py-2 text-sm font-medium m-2"
                     >
                       Eliminar
+                    </button>
+                    <button
+                      onClick={() => handleEdit(user._id)}
+                      className="bg-blue-500 text-white text-gray-50 hover:bg-gray-50 hover:text-black
+                      rounded-md px-3 py-2 text-sm font-medium m-2 "
+                    >
+                      Editar
                     </button>
                   </td>
                 </tr>
@@ -111,7 +183,6 @@ const AdminUser = () => {
               <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
             </Transition.Child>
 
-            {/* This element is to trick the browser into centering the modal contents. */}
             <span className="inline-block h-screen align-middle">&#8203;</span>
 
             <Transition.Child
@@ -151,6 +222,108 @@ const AdminUser = () => {
                   >
                     Cancelar
                   </button>
+                </div>
+              </div>
+            </Transition.Child>
+          </div>
+        </Dialog>
+      </Transition>
+
+      {/* Diálogo de edición de usuario */}
+      <Transition show={isEditDialogOpen} as={Fragment}>
+        <Dialog
+          as="div"
+          className="fixed inset-0 z-10 overflow-y-auto"
+          onClose={() => setIsEditDialogOpen(false)}
+        >
+          <div className="min-h-screen px-4 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
+            </Transition.Child>
+
+            <span className="inline-block h-screen align-middle">&#8203;</span>
+
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
+                <Dialog.Title
+                  as="h3"
+                  className="text-lg font-medium leading-6 text-gray-900"
+                >
+                  Editar usuario
+                </Dialog.Title>
+                <div className="mt-2">
+                  <form onSubmit={confirmEdit}>
+                    <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                      Nombre de usuario
+                    </label>
+                    <input
+                      type="text"
+                      id="username"
+                      name="username"
+                      value={editedUserData.username}
+                      onChange={handleChange}
+                      required
+                      className="mt-1 p-2 border rounded-md w-full"
+                    />
+
+                    <label htmlFor="email" className="block mt-2 text-sm font-medium text-gray-700">
+                      Correo electrónico
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={editedUserData.email}
+                      onChange={handleChange}
+                      required
+                      className="mt-1 p-2 border rounded-md w-full"
+                    />
+
+                    <label htmlFor="password" className="block mt-2 text-sm font-medium text-gray-700">
+                      Contraseña
+                    </label>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      value={editedUserData.password}
+                      onChange={handleChange}
+                      required
+                      className="mt-1 p-2 border rounded-md w-full"
+                    />
+
+                    <div className="mt-4">
+                      <button
+                        type="submit"
+                        className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-blue-500 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
+                      >
+                        Guardar cambios
+                      </button>
+                      <button
+                        type="button"
+                        className="ml-3 inline-flex justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 border border-transparent rounded-md hover:bg-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
+                        onClick={() => setIsEditDialogOpen(false)}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
             </Transition.Child>
