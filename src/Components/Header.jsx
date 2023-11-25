@@ -16,7 +16,7 @@ function classNames(...classes) {
 
 export default function Header() {
   return (
-    <Disclosure as="nav" className="bg-zinc-900 shadow">
+    <Disclosure as="nav" className="bg-zinc-800 shadow-2xl  shadow-yellow-900/50 ">
       {({ open }) => (
         <>
           <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
@@ -48,7 +48,7 @@ export default function Header() {
                         key={item.name}
                         to={item.to}  // Utiliza el prop 'to' en lugar de 'href'
                         className={classNames(
-                          item.current ? 'bg-blue-500 text-white' : 'text-gray-50 hover:bg-gray-50 hover:text-black',
+                          item.current ? 'bg-blue-500 text-white  hover:bg-gray-50 hover:text-black' : 'text-gray-50 hover:bg-gray-50 hover:text-black',
                           'rounded-md px-3 py-2 text-sm font-medium'
                         )}
                         aria-current={item.current ? 'page' : undefined}
@@ -140,6 +140,10 @@ export default function Header() {
           </Disclosure.Panel>
         </>
       )}
+      
     </Disclosure>
+      
+         
+         
   )
 }

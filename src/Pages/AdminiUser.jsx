@@ -15,7 +15,7 @@ const AdminUser = () => {
   });
 
   useEffect(() => {
-    const apiUrl = '';  {/* http://localhost:3000/api/users */}
+    const apiUrl = ' http://localhost:3000/api/users ';  {/* http://localhost:3000/api/users */}
 
     const fetchData = async () => {
       try {
@@ -61,7 +61,7 @@ const AdminUser = () => {
         return;
       }
 
-      const apiUrl = `${selectedUserId}`; {/* http://localhost:3000/api/users/  */}
+      const apiUrl = `http://localhost:3000/api/users/ ${selectedUserId}`; {/* http://localhost:3000/api/users/  */}
 
       await fetch(apiUrl, { method: 'DELETE' });
 
@@ -81,7 +81,7 @@ const confirmEdit = async () => {
       return;
     }
 
-    const apiUrl = `${selectedUserId}`;  {/* http://localhost:3000/api/users/ */}
+    const apiUrl = `http://localhost:3000/api/users/${selectedUserId}`;  {/* http://localhost:3000/api/users/ */}
 
     // Encriptar la contraseña con bcrypt
     const saltRounds = 10;
@@ -115,53 +115,51 @@ const confirmEdit = async () => {
   return (
     <>
        <Header />
-      <div className="container mx-auto">
-        <br />
-        <h1 className="text-2xl font-bold mb-4 p-8">Tabla de usuarios</h1>
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-zinc-700 shadow border border-gray-300 text-white">
-            <thead>
-              <tr>
-                <th className="py-2 px-4 border-b">ID</th>
-                <th className="py-2 px-4 border-b">Username</th>
-                <th className="py-2 px-4 border-b">Email</th>
-                <th className="py-2 px-4 border-b">Password</th>
-                <th className="py-2 px-4 border-b">Creado en</th>
-                <th className="py-2 px-4 border-b">Actualizado en</th>
-                <th className="py-2 px-4 border-b">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {userData.map((user) => (
-                <tr key={user._id}>
-                  <td className="py-2 px-4 border-b">{user._id}</td>
-                  <td className="py-2 px-4 border-b">{user.username}</td>
-                  <td className="py-2 px-4 border-b">{user.email}</td>
-                  <td className="py-2 px-4 border-b">{user.password}</td>
-                  <td className="py-2 px-4 border-b">{user.createdAt}</td>
-                  <td className="py-2 px-4 border-b">{user.updatedAt}</td>
-                  <td className="py-2 px-4 border-b">
-                    <button
-                      onClick={() => handleDelete(user._id)}
-                      className="bg-red-500 text-white text-gray-50 hover:bg-gray-50 hover:text-black
-                      rounded-md px-4 py-2 text-sm font-medium m-2"
-                    >
-                      Eliminar
-                    </button>
-                    <button
-                      onClick={() => handleEdit(user._id)}
-                      className="bg-blue-500 text-white text-gray-50 hover:bg-gray-50 hover:text-black
-                      rounded-md px-3 py-2 text-sm font-medium m-2 "
-                    >
-                      Editar
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+       <div className="container mx-auto p-8">
+  <h1 className="text-2xl font-bold mb-4">Tabla de usuarios</h1>
+  <div className="overflow-x-auto shadow-lg">
+    <table className="min-w-full bg-white text-gray-800 rounded-md">
+      <thead>
+        <tr>
+          <th className="py-2 px-4 border-b">ID</th>
+          <th className="py-2 px-4 border-b">Username</th>
+          <th className="py-2 px-4 border-b">Email</th>
+          <th className="py-2 px-4 border-b">Password</th>
+          <th className="py-2 px-4 border-b">Creado en</th>
+          <th className="py-2 px-4 border-b">Actualizado en</th>
+          <th className="py-2 px-4 border-b">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {userData.map((user) => (
+          <tr key={user._id}>
+            <td className="py-2 px-4 border-b">{user._id}</td>
+            <td className="py-2 px-4 border-b">{user.username}</td>
+            <td className="py-2 px-4 border-b">{user.email}</td>
+            <td className="py-2 px-4 border-b">{user.password}</td>
+            <td className="py-2 px-4 border-b">{user.createdAt}</td>
+            <td className="py-2 px-4 border-b">{user.updatedAt}</td>
+            <td className="py-2 px-4 border-b">
+              <button
+                onClick={() => handleDelete(user._id)}
+                className="bg-red-500 text-white hover:bg-red-700 px-3 py-1 rounded-md mx-1"
+              >
+                Eliminar
+              </button>
+              <button
+                onClick={() => handleEdit(user._id)}
+                className="bg-blue-500 text-white hover:bg-blue-700 px-3 py-1 rounded-md mx-1"
+              >
+                Editar
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+
 
       {/* Diálogo de confirmación para eliminar */}
       <Transition show={isDialogOpen} as={Fragment}>
